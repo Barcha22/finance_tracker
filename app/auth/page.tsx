@@ -13,10 +13,30 @@ import {
 
 
 export default function Page(){
-    const [isSignIn,setisSignIn] = useState(false);
+    const [isSignIn,setisSignIn] = useState(true);
+    const[usernamegmail,setUsernameGmail] = useState('');
+    const [password,setPassword] = useState('');
 
     function handleSignUp(){
         setisSignIn(prevVal=>!prevVal);
+    }
+
+    async function signIn(email:string,username:string,pass:string){
+      const confirmed=await fetch('http://localhost:3030/auth/login',{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json'
+        },
+        body:JSON.stringify({
+          email:email,
+          username:username,
+          password:pass
+        })
+      })
+      if(!confirmed){
+        console.log('Error while logging in')
+      }
+
     }
 
     return(
@@ -37,7 +57,7 @@ export default function Page(){
             <div className="relative w-1/2 h-125 flex flex-col justify-center items-center z-20">
                 {!isSignIn && 
                 <div className="flex justify-center items-center">
-                    <Card className=" w-full max-w-sm max-h-140">
+                    <Card className=" w-full max-w-md max-h-140">
                         <CardHeader>
                             <CardAction>
                                 <Button variant="link" onClick={handleSignUp}>Sign In?</Button>
@@ -107,7 +127,6 @@ export default function Page(){
                                 <Input
                                   id="email"
                                   type="email"
-                                  placeholder="m@example.com"
                                   required
                                 />
                               </div>
