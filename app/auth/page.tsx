@@ -10,33 +10,46 @@ import {
  import { Label } from "@/components/ui/label"
  import {Input} from "@/components/ui/input"
  import { useState } from "react"
+ import { useRouter } from "next/navigation"
+ import { loginUser, registerUser } from "@/lib/authService"
 
 
 export default function Page(){
+    const router = useRouter();
     const [isSignIn,setisSignIn] = useState(true);
+    //for login
     const[usernamegmail,setUsernameGmail] = useState('');
     const [password,setPassword] = useState('');
+    // for signup
+    const [userName,setUserName] = useState('');
+    const [email,setEmail] = useState('');
+    const [pass,setPass] = useState('');
 
     function handleSignUp(){
         setisSignIn(prevVal=>!prevVal);
     }
 
-    async function signIn(email:string,username:string,pass:string){
-      const confirmed=await fetch('http://localhost:3030/auth/login',{
-        method:'POST',
-        headers:{
-          'Content-Type':'application/json'
-        },
-        body:JSON.stringify({
-          email:email,
-          username:username,
-          password:pass
-        })
-      })
-      if(!confirmed){
-        console.log('Error while logging in')
+    async function signIn(usernameGmail:string,pass:string){
+      const result = await loginUser(usernameGmail, pass);
+      
+      if(result.success) {
+        // Redirect to dashboard
+        router.push('/dashboard');
+      } else {
+        console.log('Error while logging in:', result.error)
       }
-
+    }
+    
+    async function signUp(username:string,email:string,password:string){
+      const result = await registerUser(username, email, password);
+      
+      if(result.success) {
+        console.log('Registration successful:', result.data);
+        // Switch to sign in form after successful signup
+        setisSignIn(true);
+      } else {
+        console.log('Error registering:', result.error)
+      }
     }
 
     return(
@@ -54,6 +67,7 @@ export default function Page(){
             </div>
 
             {/*forms*/}
+            {/*for signup*/}
             <div className="relative w-1/2 h-125 flex flex-col justify-center items-center z-20">
                 {!isSignIn && 
                 <div className="flex justify-center items-center">
@@ -73,6 +87,9 @@ export default function Page(){
                                   type="email"
                                   placeholder="m@example.com"
                                   required
+                                  onChange={(val)=>{
+                                    setEmail(val.target.value)
+                                  }}
                                 />
                               </div>
                               <div className="grid gap-2">
@@ -82,24 +99,27 @@ export default function Page(){
                                   type="username"
                                   placeholder="yourname"
                                   required
+                                  onChange={(val)=>{
+                                    setUserName(val.target.value)
+                                  }}
                                 />
                               </div>
                               <div className="grid gap-2">
                                   <div className="flex items-center">
                                     <Label htmlFor="password">Password</Label>
                                   </div>
-                                  <Input id="password" type="password" required />
+                                  <Input id="password" type="password" required onChange={(val)=>{setPass(val.target.value)}}/>
                                   {/*password confirmation*/}
                                   <div className="flex items-center">
                                     <Label htmlFor="confirm password"> re-enter password</Label>
                                   </div>
-                                  <Input id="confirm password" type="confirm password" required />
+                                  <Input id="password" type="password" required />
                               </div>
                             </div>
                           </form>
                         </CardContent>
                         <CardFooter className="flex-col gap-2">
-                          <Button type="submit" className="w-full cursor-pointer">
+                          <Button type="submit" className="w-full cursor-pointer" onClick={()=>signUp(userName,email,pass)}>
                             Signup
                           </Button>
                           <Button variant="outline" className="w-full cursor-pointer">
@@ -109,7 +129,7 @@ export default function Page(){
                     </Card>
                 </div>}    
             </div>
-           
+            {/*for login*/}
             <div className="relative w-1/2 h-125 flex flex-col justify-center items-center z-20">
                 {isSignIn && 
                 <div className="flex justify-center items-center">
@@ -128,6 +148,9 @@ export default function Page(){
                                   id="email"
                                   type="email"
                                   required
+                                  onChange={(val)=>{
+                                    setUsernameGmail(val.target.value);
+                                  }}
                                 />
                               </div>
                               <div className="grid gap-2">
@@ -140,13 +163,15 @@ export default function Page(){
                                     Forgot your password?
                                   </a>
                                 </div>
-                                <Input id="password" type="password" required />
+                                <Input id="password" type="password" required onChange={(val)=>{
+                                  setPassword(val.target.value)
+                                }}/>
                               </div>
                             </div>
                           </form>
                         </CardContent>
                         <CardFooter className="flex-col gap-2">
-                          <Button type="submit" className="w-full cursor-pointer">
+                          <Button type="submit" className="w-full cursor-pointer" onClick={()=>signIn(usernamegmail,password)}>
                             Login
                           </Button>
                           <Button variant="outline" className="w-full cursor-pointer">

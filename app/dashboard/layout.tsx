@@ -6,13 +6,10 @@ export default function Layout({
     children:React.ReactNode
 }>){
    return(
-    <html lang="en">
-        <body className="flex">
-            <Header />
-            <main className="flex-1">{children}</main>
-        </body>
-        
-    </html>
+    <div className="flex">
+        <Header />
+        <main className="flex-1">{children}</main>
+    </div>
    )
 
 }
