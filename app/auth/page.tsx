@@ -15,37 +15,40 @@ import {
 
 
 export default function Page(){
-    const router = useRouter();
-    const [isSignIn,setisSignIn] = useState(true);
+    const router = useRouter();  //for navigation to routes
+    const [isSignIn,setisSignIn] = useState(true); //to construct form accordingly
     //for login
-    const[usernamegmail,setUsernameGmail] = useState('');
-    const [password,setPassword] = useState('');
+    const [signInForm,setSignInForm]=useState({
+      'usernamegmail' : '',
+      'password' : '',
+    })
     // for signup
-    const [userName,setUserName] = useState('');
-    const [email,setEmail] = useState('');
-    const [pass,setPass] = useState('');
+    const [registerForm,setRegisterForm]=useState({
+      'userName'  : '',
+      'email' : '',
+      'pass' : ''
+    })
 
+    //function to show login or register page accorindgly
     function handleSignUp(){
         setisSignIn(prevVal=>!prevVal);
     }
-
+    //function to signin 
     async function signIn(usernameGmail:string,pass:string){
       const result = await loginUser(usernameGmail, pass);
-      
+    
       if(result.success) {
-        // Redirect to dashboard
         router.push('/dashboard');
       } else {
         console.log('Error while logging in:', result.error)
       }
     }
-    
+    //function to register
     async function signUp(username:string,email:string,password:string){
       const result = await registerUser(username, email, password);
       
       if(result.success) {
         console.log('Registration successful:', result.data);
-        // Switch to sign in form after successful signup
         setisSignIn(true);
       } else {
         console.log('Error registering:', result.error)
@@ -88,7 +91,10 @@ export default function Page(){
                                   placeholder="m@example.com"
                                   required
                                   onChange={(val)=>{
-                                    setEmail(val.target.value)
+                                    setRegisterForm({
+                                      ...registerForm,
+                                      email:val.target.value
+                                    })
                                   }}
                                 />
                               </div>
@@ -100,7 +106,10 @@ export default function Page(){
                                   placeholder="yourname"
                                   required
                                   onChange={(val)=>{
-                                    setUserName(val.target.value)
+                                    setRegisterForm({
+                                      ...registerForm,
+                                      userName:val.target.value
+                                    })
                                   }}
                                 />
                               </div>
@@ -108,7 +117,7 @@ export default function Page(){
                                   <div className="flex items-center">
                                     <Label htmlFor="password">Password</Label>
                                   </div>
-                                  <Input id="password" type="password" required onChange={(val)=>{setPass(val.target.value)}}/>
+                                  <Input id="password" type="password" required onChange={(val)=>{setRegisterForm({...registerForm,pass:val.target.value})}}/>
                                   {/*password confirmation*/}
                                   <div className="flex items-center">
                                     <Label htmlFor="confirm password"> re-enter password</Label>
@@ -119,7 +128,7 @@ export default function Page(){
                           </form>
                         </CardContent>
                         <CardFooter className="flex-col gap-2">
-                          <Button type="submit" className="w-full cursor-pointer" onClick={()=>signUp(userName,email,pass)}>
+                          <Button type="submit" className="w-full cursor-pointer" onClick={()=>signUp(registerForm.userName,registerForm.email,registerForm.pass)}>
                             Signup
                           </Button>
                           <Button variant="outline" className="w-full cursor-pointer">
@@ -149,7 +158,7 @@ export default function Page(){
                                   type="email"
                                   required
                                   onChange={(val)=>{
-                                    setUsernameGmail(val.target.value);
+                                    setSignInForm({...signInForm,usernamegmail:val.target.value});
                                   }}
                                 />
                               </div>
@@ -164,14 +173,17 @@ export default function Page(){
                                   </a>
                                 </div>
                                 <Input id="password" type="password" required onChange={(val)=>{
-                                  setPassword(val.target.value)
-                                }}/>
+                                    setSignInForm({
+                                      ...signInForm,
+                                      password:val.target.value,
+                                    })
+                                  }}/>
                               </div>
                             </div>
                           </form>
                         </CardContent>
                         <CardFooter className="flex-col gap-2">
-                          <Button type="submit" className="w-full cursor-pointer" onClick={()=>signIn(usernamegmail,password)}>
+                          <Button type="submit" className="w-full cursor-pointer" onClick={()=>signIn(signInForm.usernamegmail,signInForm.password)}>
                             Login
                           </Button>
                           <Button variant="outline" className="w-full cursor-pointer">
