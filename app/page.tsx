@@ -1,14 +1,26 @@
-'use client';
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+'use client'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/context/AuthContext'
 
-export default function Home() {
-  return (
-    <div className="min-h-screen bg-blue-300">
-      <div className="flex flex-col items-center justify-center h-screen gap-4">
-        <h1>Welcome to 'AppName'</h1>
-        <Link href={'/auth'}><Button>Get started!</Button></Link>
-      </div>
-    </div>
-  );
+export default function InfoPage(){
+    const { isAuthenticated } = useAuth()
+    const router = useRouter()
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            router.push('/dashboard')
+        } else {
+            router.push('/auth/login')
+        }
+    }, [isAuthenticated, router])
+
+    return (
+        <div className='flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100'>
+            <div className='text-center'>
+                <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto'></div>
+                <p className='mt-4 text-gray-600'>Loading...</p>
+            </div>
+        </div>
+    )
 }
