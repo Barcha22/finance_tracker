@@ -5,17 +5,29 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useAuth } from '@/context/AuthContext'
-import { Save, User } from 'lucide-react'
+// --- Mock Context/Auth for Demo ---
+const useAuth = () => ({ 
+  user: { name: 'Alex Johnson', email: 'alex.j@fintrack.com' } 
+})
+// ----------------------------------
+import { Save, User, Camera, Bell, ShieldAlert, Globe, Smartphone } from 'lucide-react'
 import toast from 'react-hot-toast'
 
+/**
+ * Premium Profile Settings Component
+ * 
+ * Coherent with "Indigo Financial" Dark Theme:
+ * - High Contrast: White/Indigo text on #051424 background.
+ * - Structured Layout: Organized sections with consistent card styling.
+ * - Interactive: Refined form states and tactile action buttons.
+ */
 export default function Profile() {
   const { user } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
-    phone: '',
+    phone: '+1 (555) 123-4567',
     currency: 'USD',
     notifications: true,
   })
@@ -34,32 +46,59 @@ export default function Profile() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-4xl font-bold text-gray-900">Profile Settings</h1>
-        <p className="text-gray-600 mt-2">Manage your account information</p>
+    <div className="min-h-screen bg-[#051424] p-8 space-y-10 font-['Manrope'] text-white">
+      {/* --- Header Section --- */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-4xl font-black tracking-tight text-white mb-2">
+            Account Settings
+          </h1>
+          <p className="text-indigo-200/60 font-semibold text-sm">
+            Manage your personal information, preferences, and security.
+          </p>
+        </div>
+        {!isEditing && (
+          <button 
+            onClick={() => setIsEditing(true)}
+            className="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-sm font-black shadow-[0_10px_25px_-5px_rgba(79,70,229,0.4)] transition-all active:scale-95"
+          >
+            Edit Profile
+          </button>
+        )}
       </div>
 
-      {/* Profile Card */}
-      <Card>
-        <div className="p-6">
-          <div className="flex items-center gap-6 mb-8">
-            <div className="bg-gradient-to-br from-indigo-400 to-blue-500 w-24 h-24 rounded-full flex items-center justify-center">
-              <User className="w-12 h-12 text-white" />
+      {/* --- Profile Card --- */}
+      <Card className="bg-[#1e1b4b] border-white/5 rounded-[3rem] overflow-hidden shadow-2xl relative">
+        <div className="absolute top-0 right-0 p-10 opacity-5 pointer-events-none">
+           <User size={120} />
+        </div>
+
+        <div className="p-10">
+          <div className="flex flex-col md:flex-row items-center gap-10 mb-12 pb-12 border-b border-white/5">
+            <div className="relative group">
+              <div className="bg-gradient-to-tr from-indigo-600 to-violet-500 w-32 h-32 rounded-[2.5rem] flex items-center justify-center border-4 border-white/10 shadow-2xl overflow-hidden">
+                <span className="text-4xl font-black text-white">AJ</span>
+              </div>
+              <button className="absolute -bottom-2 -right-2 p-3 bg-white text-[#1e1b4b] rounded-2xl shadow-xl hover:scale-110 transition-transform active:scale-95">
+                <Camera size={18} />
+              </button>
             </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">{formData.name}</h2>
-              <p className="text-gray-600 mt-1">{formData.email}</p>
+            <div className="text-center md:text-left">
+              <h2 className="text-3xl font-black text-white mb-1">{formData.name}</h2>
+              <p className="text-indigo-300/60 font-bold tracking-wide uppercase text-xs">{formData.email}</p>
+              <div className="mt-4 flex items-center gap-2 justify-center md:justify-start">
+                 <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/20">Active Account</span>
+                 <span className="px-3 py-1 bg-indigo-500/10 text-indigo-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-500/20">Pro Member</span>
+              </div>
             </div>
           </div>
 
           {isEditing ? (
-            <form className="space-y-5">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                  <Label htmlFor="name" className="block mb-2">
-                    Full Name
+            <form className="space-y-10" onSubmit={(e) => e.preventDefault()}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div className="space-y-3">
+                  <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-indigo-300">
+                    Legal Full Name
                   </Label>
                   <Input
                     id="name"
@@ -67,13 +106,13 @@ export default function Profile() {
                     type="text"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="w-full"
+                    className="bg-white/5 border-white/10 rounded-2xl h-14 px-6 focus:ring-indigo-500 text-white font-semibold"
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="email" className="block mb-2">
-                    Email Address
+                <div className="space-y-3">
+                  <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-indigo-300">
+                    Primary Email
                   </Label>
                   <Input
                     id="email"
@@ -81,120 +120,122 @@ export default function Profile() {
                     type="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full"
+                    className="bg-white/5 border-white/10 rounded-2xl h-14 px-6 focus:ring-indigo-500 text-white font-semibold"
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="phone" className="block mb-2">
-                    Phone Number (Optional)
+                <div className="space-y-3">
+                  <Label htmlFor="phone" className="text-xs font-black uppercase tracking-widest text-indigo-300">
+                    Mobile Phone
                   </Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    placeholder="+1 (555) 000-0000"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    className="w-full"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className="bg-white/5 border-white/10 rounded-2xl h-14 pl-14 pr-6 focus:ring-indigo-500 text-white font-semibold"
+                    />
+                    <Smartphone className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400/50" />
+                  </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="currency" className="block mb-2">
-                    Preferred Currency
+                <div className="space-y-3">
+                  <Label htmlFor="currency" className="text-xs font-black uppercase tracking-widest text-indigo-300">
+                    Reporting Currency
                   </Label>
-                  <select
-                    id="currency"
-                    name="currency"
-                    value={formData.currency}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
-                    <option value="GBP">GBP (£)</option>
-                    <option value="JPY">JPY (¥)</option>
-                  </select>
+                  <div className="relative">
+                    <select
+                      id="currency"
+                      name="currency"
+                      value={formData.currency}
+                      onChange={handleInputChange}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl h-14 pl-14 pr-6 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white font-semibold appearance-none"
+                    >
+                      <option value="USD">United States Dollar ($)</option>
+                      <option value="EUR">Euro (€)</option>
+                      <option value="GBP">British Pound (£)</option>
+                      <option value="JPY">Japanese Yen (¥)</option>
+                    </select>
+                    <Globe className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400/50" />
+                  </div>
                 </div>
               </div>
 
-              <div className="border-t pt-5">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="notifications"
-                    checked={formData.notifications}
-                    onChange={handleInputChange}
-                    className="w-4 h-4 rounded"
-                  />
-                  <span className="text-gray-700">Receive email notifications</span>
+              <div className="pt-6 border-t border-white/5">
+                <h3 className="text-sm font-black text-white mb-6 flex items-center gap-2">
+                   <Bell size={18} className="text-indigo-400" />
+                   Notification Settings
+                </h3>
+                <label className="flex items-center gap-4 cursor-pointer group">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      name="notifications"
+                      checked={formData.notifications}
+                      onChange={handleInputChange}
+                      className="sr-only peer"
+                    />
+                    <div className="w-14 h-8 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-indigo-600"></div>
+                  </div>
+                  <span className="text-sm font-bold text-indigo-200/60 group-hover:text-white transition-colors">
+                    Receive weekly intelligence & transaction reports via email
+                  </span>
                 </label>
               </div>
 
-              <div className="flex gap-3 pt-3">
-                <Button
+              <div className="flex gap-4 pt-6">
+                <button
                   onClick={handleSave}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-2"
+                  className="px-10 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-sm font-black shadow-xl transition-all active:scale-95 flex items-center gap-2"
                 >
                   <Save size={18} />
-                  Save Changes
-                </Button>
-                <Button
+                  Update Profile
+                </button>
+                <button
                   onClick={() => setIsEditing(false)}
-                  className="bg-gray-300 hover:bg-gray-400 text-gray-900"
+                  className="px-10 py-4 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white rounded-2xl text-sm font-bold transition-all active:scale-95"
                 >
-                  Cancel
-                </Button>
+                  Discard Changes
+                </button>
               </div>
             </form>
           ) : (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600">Full Name</p>
-                  <p className="text-lg font-semibold text-gray-900 mt-1">{formData.name}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {[
+                { label: 'Full Name', value: formData.name },
+                { label: 'Email Address', value: formData.email },
+                { label: 'Phone Number', value: formData.phone || 'Not provided' },
+                { label: 'Primary Currency', value: formData.currency }
+              ].map((item, idx) => (
+                <div key={idx} className="bg-white/2 border border-white/5 p-6 rounded-3xl group hover:bg-white/5 transition-colors">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-2">{item.label}</p>
+                  <p className="text-lg font-bold text-white group-hover:text-indigo-300 transition-colors">{item.value}</p>
                 </div>
-
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600">Email Address</p>
-                  <p className="text-lg font-semibold text-gray-900 mt-1">{formData.email}</p>
-                </div>
-
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600">Phone Number</p>
-                  <p className="text-lg font-semibold text-gray-900 mt-1">
-                    {formData.phone || 'Not provided'}
-                  </p>
-                </div>
-
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600">Preferred Currency</p>
-                  <p className="text-lg font-semibold text-gray-900 mt-1">{formData.currency}</p>
-                </div>
-              </div>
-
-              <Button
-                onClick={() => setIsEditing(true)}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white"
-              >
-                Edit Profile
-              </Button>
+              ))}
             </div>
           )}
         </div>
       </Card>
 
-      {/* Danger Zone */}
-      <Card className="border-red-200 bg-red-50">
-        <div className="p-6">
-          <h3 className="text-lg font-semibold text-red-900 mb-4">Danger Zone</h3>
-          <p className="text-red-700 text-sm mb-4">
-            Once you delete your account, there is no going back. Please be certain.
-          </p>
-          <Button className="bg-red-600 hover:bg-red-700 text-white">
-            Delete Account
-          </Button>
+      {/* --- Danger Zone --- */}
+      <Card className="bg-red-500/5 border border-red-500/20 rounded-[3rem] overflow-hidden shadow-2xl">
+        <div className="p-10 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="flex items-center gap-6">
+            <div className="p-5 bg-red-500/10 rounded-[2rem] text-red-500 border border-red-500/20">
+              <ShieldAlert size={32} />
+            </div>
+            <div>
+              <h3 className="text-2xl font-black text-red-400 mb-1">Danger Zone</h3>
+              <p className="text-red-400/50 text-sm font-medium">
+                Irreversibly delete your account and all associated financial data.
+              </p>
+            </div>
+          </div>
+          <button className="w-full md:w-auto px-10 py-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 rounded-2xl text-sm font-black transition-all active:scale-95">
+            Terminate Account
+          </button>
         </div>
       </Card>
     </div>
