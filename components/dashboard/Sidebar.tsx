@@ -49,7 +49,7 @@ export default function Sidebar() {
           <div className="bg-indigo-200 p-2 rounded-lg">
             <Wallet className="w-6 h-6 text-indigo-700" />
           </div>
-          <span className="text-2xl font-bold">FinTrack</span>
+          <span className="text-2xl font-bold">FinFlow</span>
         </div>
 
         {/* Navigation */}
