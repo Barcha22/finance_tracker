@@ -1,7 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useAuth } from '@/context/AuthContext'
+import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/card'
+import { transactionsAPI, accountsAPI, categoriesAPI } from '@/lib/api'
 import { 
   BarChart, 
   Bar, 
@@ -30,78 +33,98 @@ import {
 import toast from 'react-hot-toast'
 
 interface Transaction {
-  id: string
-  title: string
+  id: number
+  user_id: number
+  account_id: number
+  category_id: number
   amount: number
-  category: string
-  date: string
+  description: string
+  type: 'income' | 'expense'
+  transaction_date: string
+}
+
+interface Account {
+  id: number
+  user_id: number
+  name: string
+  balance: number
+  account_type: string
+}
+
+interface Category {
+  id: number
+  user_id: number
+  name: string
   type: 'income' | 'expense'
 }
 
-// --- Mock Data ---
-const initialMonthlyData = [
-  { month: 'Jan', income: 4500, expenses: 2400 },
-  { month: 'Feb', income: 5200, expenses: 1398 },
-  { month: 'Mar', income: 4800, expenses: 3200 },
-  { month: 'Apr', income: 6100, expenses: 3908 },
-  { month: 'May', income: 5900, expenses: 4800 },
-  { month: 'Jun', income: 7200, expenses: 3800 },
-]
-
-/**
- * Integrated High-Fidelity FinTrack Dashboard - Modal Edition (No Blur)
- */
 export default function DashboardHome() {
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    {
-      id: '1',
-      title: 'Grocery Shopping',
-      amount: 120,
-      category: 'Food',
-      date: '2024-03-28',
-      type: 'expense',
-    },
-    {
-      id: '2',
-      title: 'Salary',
-      amount: 3500,
-      category: 'Income',
-      date: '2024-03-25',
-      type: 'income',
-    },
-    {
-      id: '3',
-      title: 'Gas',
-      amount: 50,
-      category: 'Transport',
-      date: '2024-03-24',
-      type: 'expense',
-    },
-  ])
-
+  const { user, isAuthenticated } = useAuth()
+  const router = useRouter()
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [accounts, setAccounts] = useState<Account[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [formData, setFormData] = useState({
-    title: '',
+    description: '',
     amount: '',
-    category: '',
+    category_id: '',
+    account_id: '',
     type: 'expense' as const,
+    transaction_date: new Date().toISOString().split('T')[0],
   })
 
-  // Dynamic calculations
-  const totalIncomeBase = 33700
-  const totalExpensesBase = 19506
-  
-  const currentIncome = transactions
+  // Fetch data on mount
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      router.push('/auth/login')
+      return
+    }
+
+    fetchData()
+  }, [user, isAuthenticated])
+
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      const [txnsRes, accsRes, catsRes] = await Promise.all([
+        transactionsAPI.getByUser(user!.id),
+        accountsAPI.getByUser(user!.id),
+        categoriesAPI.getByUser(user!.id),
+      ])
+      
+      setTransactions(txnsRes.result || [])
+      setAccounts(accsRes.result || [])
+      setCategories(catsRes.result || [])
+    } catch (error) {
+      console.error('Failed to fetch data:', error)
+      toast.error('Failed to load dashboard data')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Calculate totals
+  const totalIncome = transactions
     .filter(t => t.type === 'income')
     .reduce((acc, curr) => acc + curr.amount, 0)
     
-  const currentExpenses = transactions
+  const totalExpenses = transactions
     .filter(t => t.type === 'expense')
     .reduce((acc, curr) => acc + curr.amount, 0)
 
-  const totalIncome = totalIncomeBase + currentIncome
-  const totalExpenses = totalExpensesBase + currentExpenses
   const balance = totalIncome - totalExpenses
+
+  // Monthly data for chart
+  const monthlyData = [
+    { month: 'Jan', income: 0, expenses: 0 },
+    { month: 'Feb', income: 0, expenses: 0 },
+    { month: 'Mar', income: 0, expenses: 0 },
+    { month: 'Apr', income: 0, expenses: 0 },
+    { month: 'May', income: 0, expenses: 0 },
+    { month: 'Jun', income: 0, expenses: 0 },
+  ]
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
@@ -110,31 +133,49 @@ export default function DashboardHome() {
     })
   }
 
-  const handleAddTransaction = (e: React.FormEvent) => {
+  const handleAddTransaction = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.title || !formData.amount || !formData.category) {
+    if (!formData.description || !formData.amount || !formData.category_id || !formData.account_id) {
       toast.error('Please fill all fields')
       return
     }
 
-    const newTransaction: Transaction = {
-      id: Date.now().toString(),
-      title: formData.title,
-      amount: parseFloat(formData.amount),
-      category: formData.category,
-      date: new Date().toISOString().split('T')[0],
-      type: formData.type,
-    }
+    try {
+      const newTxn = {
+        account_id: parseInt(formData.account_id),
+        category_id: parseInt(formData.category_id),
+        amount: parseFloat(formData.amount),
+        description: formData.description,
+        type: formData.type,
+        transaction_date: formData.transaction_date,
+      }
 
-    setTransactions([newTransaction, ...transactions])
-    setFormData({ title: '', amount: '', category: '', type: 'expense' })
-    setShowModal(false)
-    toast.success('Transaction added!')
+      await transactionsAPI.create(newTxn)
+      toast.success('Transaction added!')
+      setFormData({ description: '', amount: '', category_id: '', account_id: '', type: 'expense', transaction_date: new Date().toISOString().split('T')[0] })
+      setShowModal(false)
+      fetchData() // Refresh data
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to add transaction')
+    }
   }
 
-  const handleDeleteTransaction = (id: string) => {
-    setTransactions(transactions.filter((t) => t.id !== id))
-    toast.success('Transaction deleted!')
+  const handleDeleteTransaction = async (id: number) => {
+    try {
+      await transactionsAPI.delete(id)
+      toast.success('Transaction deleted!')
+      fetchData() // Refresh datas
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to delete transaction')
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen w-full bg-[#051424] flex items-center justify-center">
+        <div className="text-white text-lg">Loading...</div>
+      </div>
+    )
   }
 
   return (
@@ -210,7 +251,7 @@ export default function DashboardHome() {
           <div className="bg-[#1e1b4b] border border-white/5 rounded-[3rem] overflow-hidden shadow-2xl flex flex-col group p-10">
             <h3 className="text-2xl font-black text-white mb-6">Cashflow Analysis</h3>
             <ResponsiveContainer width="100%" height={320}>
-              <BarChart data={initialMonthlyData}>
+              <BarChart data={monthlyData}>
                 <defs>
                   <linearGradient id="barInc" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#818cf8" stopOpacity={1}/><stop offset="100%" stopColor="#6366f1" stopOpacity={0.4}/></linearGradient>
                   <linearGradient id="barExp" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#f43f5e" stopOpacity={1}/><stop offset="100%" stopColor="#e11d48" stopOpacity={0.4}/></linearGradient>
@@ -233,7 +274,7 @@ export default function DashboardHome() {
             <div className="overflow-y-auto max-h-[400px]">
               <table className="w-full text-left">
                 <tbody className="divide-y divide-white/5">
-                  {transactions.map((transaction) => (
+                  {transactions.slice(0, 10).map((transaction) => (
                     <tr key={transaction.id} className="group/row hover:bg-white/[0.02] transition-colors">
                       <td className="px-10 py-6">
                         <div className="flex items-center gap-4">
@@ -241,8 +282,8 @@ export default function DashboardHome() {
                             {transaction.type === 'income' ? <ArrowUpRight size={20} /> : <TrendingDown size={20} />}
                           </div>
                           <div className="flex flex-col">
-                            <span className="text-base font-black text-white">{transaction.title}</span>
-                            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400/50">{transaction.category}</span>
+                            <span className="text-base font-black text-white">{transaction.description}</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400/50">{transaction.transaction_date}</span>
                           </div>
                         </div>
                       </td>
@@ -299,7 +340,7 @@ export default function DashboardHome() {
                   <div className="space-y-3">
                     <label className="text-[10px] font-black uppercase tracking-widest text-indigo-300 ml-1">Description</label>
                     <div className="relative">
-                      <input name="title" type="text" placeholder="e.g., Apple Store" value={formData.title} onChange={handleInputChange} className="w-full bg-white/5 border border-white/10 h-16 pl-14 rounded-2xl focus:ring-2 focus:ring-indigo-500 text-white placeholder:text-white/10 font-bold outline-none transition-all" />
+                      <input name="description" type="text" placeholder="e.g., Grocery Shopping" value={formData.description} onChange={handleInputChange} className="w-full bg-white/5 border border-white/10 h-16 pl-14 rounded-2xl focus:ring-2 focus:ring-indigo-500 text-white placeholder:text-white/10 font-bold outline-none transition-all" />
                       <Tag className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400/40" />
                     </div>
                   </div>
@@ -321,23 +362,35 @@ export default function DashboardHome() {
                     </select>
                   </div>
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-indigo-300 ml-1">Category</label>
-                    <select name="category" value={formData.category} onChange={handleInputChange} className="w-full bg-[#2c2a5e] border border-white/10 h-16 px-6 rounded-2xl focus:ring-2 focus:ring-indigo-500 text-white font-bold appearance-none cursor-pointer">
-                      <option value="">Select Category</option>
-                      <option value="Food">Food & Dining</option>
-                      <option value="Transport">Transport</option>
-                      <option value="Entertainment">Entertainment</option>
-                      <option value="Housing">Housing</option>
-                      <option value="Utilities">Utilities</option>
-                      <option value="Investment">Investment</option>
-                      <option value="Other">Other</option>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-indigo-300 ml-1">Account</label>
+                    <select name="account_id" value={formData.account_id} onChange={handleInputChange} className="w-full bg-[#2c2a5e] border border-white/10 h-16 px-6 rounded-2xl focus:ring-2 focus:ring-indigo-500 text-white font-bold appearance-none cursor-pointer">
+                      <option value="">Select Account</option>
+                      {accounts.map(acc => (
+                        <option key={acc.id} value={acc.id}>{acc.name}</option>
+                      ))}
                     </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-indigo-300 ml-1">Category</label>
+                    <select name="category_id" value={formData.category_id} onChange={handleInputChange} className="w-full bg-[#2c2a5e] border border-white/10 h-16 px-6 rounded-2xl focus:ring-2 focus:ring-indigo-500 text-white font-bold appearance-none cursor-pointer">
+                      <option value="">Select Category</option>
+                      {categories.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-indigo-300 ml-1">Date</label>
+                    <input name="transaction_date" type="date" value={formData.transaction_date} onChange={handleInputChange} className="w-full bg-[#2c2a5e] border border-white/10 h-16 px-6 rounded-2xl focus:ring-2 focus:ring-indigo-500 text-white font-bold appearance-none cursor-pointer" />
                   </div>
                 </div>
 
                 <div className="pt-4 flex gap-4">
                   <button type="submit" className="flex-1 h-16 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-sm font-black shadow-[0_20px_40px_-10px_rgba(79,70,229,0.5)] transition-all active:scale-95">
-                    Sync Transaction
+                    Add Transaction
                   </button>
                   <button type="button" onClick={() => setShowModal(false)} className="px-8 h-16 bg-white/5 hover:bg-white/10 text-white/40 hover:text-white rounded-2xl text-sm font-bold transition-all">
                     Cancel

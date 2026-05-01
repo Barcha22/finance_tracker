@@ -13,7 +13,7 @@ import { Wallet } from 'lucide-react'
 
 export default function Login() {
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: '',
   })
   const [loading, setLoading] = useState(false)
@@ -31,11 +31,11 @@ export default function Login() {
     e.preventDefault()
     setLoading(true)
     try {
-      // await login(formData.email, formData.password)
+      await login(formData.username, formData.password)
       toast.success('Login successful!')
       router.push('/dashboard')
     } catch (error) {
-      toast.error('Invalid email or password')
+      toast.error(error instanceof Error ? error.message : 'Invalid credentials')
     } finally {
       setLoading(false)
     }
@@ -57,13 +57,13 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <Label htmlFor="email" className="block mb-2">Email Address</Label>
+              <Label htmlFor="username" className="block mb-2">Username</Label>
               <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="you@example.com"
-                value={formData.email}
+                id="username"
+                name="username"
+                type="text"
+                placeholder="your username"
+                value={formData.username}
                 onChange={handleChange}
                 required
                 className="w-full"

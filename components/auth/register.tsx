@@ -11,7 +11,9 @@ import toast from 'react-hot-toast'
 
 export default function Register() {
   const [formData, setFormData] = useState({
-    name: '',
+    first_name: '',
+    last_name: '',
+    username: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -42,11 +44,11 @@ export default function Register() {
 
     setLoading(true)
     try {
-      await register(formData.email, formData.password, formData.name)
+      await register(formData.first_name,formData.last_name,formData.username,formData.email, formData.password)
       toast.success('Account created successfully!')
       router.push('/dashboard')
     } catch (error) {
-      toast.error('Registration failed')
+      toast.error(error instanceof Error ? error.message : 'Registration failed')
     } finally {
       setLoading(false)
     }
@@ -61,15 +63,44 @@ export default function Register() {
             <p className="text-gray-600 mt-2">Join Finance Tracker today</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="first_name" className="block mb-2">First Name</Label>
+                <Input
+                  id="first_name"
+                  name="first_name"
+                  type="text"
+                  placeholder="John"
+                  value={formData.first_name}
+                  onChange={handleChange}
+                  required
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <Label htmlFor="last_name" className="block mb-2">Last Name</Label>
+                <Input
+                  id="last_name"
+                  name="last_name"
+                  type="text"
+                  placeholder="Doe"
+                  value={formData.last_name}
+                  onChange={handleChange}
+                  required
+                  className="w-full"
+                />
+              </div>
+            </div>
+
             <div>
-              <Label htmlFor="name" className="block mb-2">Full Name</Label>
+              <Label htmlFor="username" className="block mb-2">Username</Label>
               <Input
-                id="name"
-                name="name"
+                id="username"
+                name="username"
                 type="text"
-                placeholder="John Doe"
-                value={formData.name}
+                placeholder="johndoe123"
+                value={formData.username}
                 onChange={handleChange}
                 required
                 className="w-full"

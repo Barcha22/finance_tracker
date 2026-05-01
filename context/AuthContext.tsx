@@ -1,20 +1,22 @@
 'use client'
 
-import React, { createContext, useContext, useState, ReactNode } from 'react'
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
+import { authAPI } from '@/lib/api'
 
 interface User {
-  id: string
+  id: number
   email: string
-  name: string
-  avatar?: string
+  first_name: string
+  last_name: string
+  username: string
 }
 
 interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
-  login: (email: string, password: string) => Promise<void>
+  login: (username: string, password: string) => Promise<void>
   logout: () => void
-  register: (email: string, password: string, name: string) => Promise<void>
+  register: (first_name: string, last_name: string, username: string, email: string, password: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -23,35 +25,75 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
-  const login = async (email: string, password: string) => {
-    // TODO: Call your backend API
-    const mockUser: User = {
-      id: '1',
-      email,
-      name: email.split('@')[0],
-      avatar: undefined,
+  // Load user from localStorage on mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user')
+    const storedToken = localStorage.getItem('token')
+    if (storedUser && storedToken) {
+      setUser(JSON.parse(storedUser))
+      setIsAuthenticated(true)
     }
-    setUser(mockUser)
-    setIsAuthenticated(true)
-    localStorage.setItem('user', JSON.stringify(mockUser))
+  }, [])
+
+  const login = async (username: string, password: string) => {
+    try {
+      const response = await authAPI.login(username, password)
+      
+      if (response.resposeCode === 200 && response.result) {
+        const userData = response.result
+        setUser(userData)
+        setIsAuthenticated(true)
+        
+        // Store token and user in localStorage
+        localStorage.setItem('token', userData.token)
+        localStorage.setItem('user', JSON.stringify(userData))
+      } else {
+        throw new Error(response.message || 'Login failed')
+      }
+    } catch (error: any) {
+      // Extract meaningful error message
+      let errorMessage = 'Login failed'
+      
+      if (error?.message) {
+        errorMessage = error.message
+      } else if (error?.resposeCode === 401) {
+        errorMessage = 'Invalid username or password'
+      } else if (error?.resposeCode === 404) {
+        errorMessage = 'User not found'
+      }
+      
+      throw new Error(errorMessage)
+    }
   }
 
-  const register = async (email: string, password: string, name: string) => {
-    // TODO: Call your backend API
-    const mockUser: User = {
-      id: '1',
-      email,
-      name,
-      avatar: undefined,
+  const register = async (first_name: string, last_name: string, username: string, email: string, password: string) => {
+    try {
+      const response = await authAPI.register(first_name, last_name, username, email, password)
+      
+      if (response.resposeCode === 201) {
+        // After registration, auto-login
+        await login(username, password)
+      } else {
+        throw new Error(response.message || 'Registration failed')
+      }
+    } catch (error: any) {
+      // Extract meaningful error message
+      let errorMessage = 'Registration failed'
+      
+      if (error?.message) {
+        errorMessage = error.message
+      } else if (error?.resposeCode === 400) {
+        errorMessage = error.message || 'Invalid input. Please check all fields.'
+      }
+      
+      throw new Error(errorMessage)
     }
-    setUser(mockUser)
-    setIsAuthenticated(true)
-    localStorage.setItem('user', JSON.stringify(mockUser))
   }
 
   const logout = () => {
     setUser(null)
     setIsAuthenticated(false)
+    localStorage.removeItem('token')
     localStorage.removeItem('user')
   }
 

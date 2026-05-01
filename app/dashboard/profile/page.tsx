@@ -5,12 +5,8 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-// --- Mock Context/Auth for Demo ---
-const useAuth = () => ({ 
-  user: { name: 'Alex Johnson', email: 'alex.j@fintrack.com' } 
-})
-// ----------------------------------
-import { Save, User, Camera, Bell, ShieldAlert, Globe, Smartphone } from 'lucide-react'
+import { useAuth } from '@/context/AuthContext'
+import { Save, User, Camera, ShieldAlert } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 /**
@@ -25,11 +21,9 @@ export default function Profile() {
   const { user } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
-    name: user?.name || '',
+    first_name: user?.first_name || '',
+    last_name: user?.last_name || '',
     email: user?.email || '',
-    phone: '+1 (555) 123-4567',
-    currency: 'USD',
-    notifications: true,
   })
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -77,18 +71,17 @@ export default function Profile() {
           <div className="flex flex-col md:flex-row items-center gap-10 mb-12 pb-12 border-b border-white/5">
             <div className="relative group">
               <div className="bg-gradient-to-tr from-indigo-600 to-violet-500 w-32 h-32 rounded-[2.5rem] flex items-center justify-center border-4 border-white/10 shadow-2xl overflow-hidden">
-                <span className="text-4xl font-black text-white">AJ</span>
+                <span className="text-4xl font-black text-white">{(formData.first_name?.charAt(0) || 'U') + (formData.last_name?.charAt(0) || 'U')}</span>
               </div>
               <button className="absolute -bottom-2 -right-2 p-3 bg-white text-[#1e1b4b] rounded-2xl shadow-xl hover:scale-110 transition-transform active:scale-95">
                 <Camera size={18} />
               </button>
             </div>
             <div className="text-center md:text-left">
-              <h2 className="text-3xl font-black text-white mb-1">{formData.name}</h2>
+              <h2 className="text-3xl font-black text-white mb-1">{formData.first_name} {formData.last_name}</h2>
               <p className="text-indigo-300/60 font-bold tracking-wide uppercase text-xs">{formData.email}</p>
               <div className="mt-4 flex items-center gap-2 justify-center md:justify-start">
                  <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/20">Active Account</span>
-                 <span className="px-3 py-1 bg-indigo-500/10 text-indigo-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-500/20">Pro Member</span>
               </div>
             </div>
           </div>
@@ -97,22 +90,36 @@ export default function Profile() {
             <form className="space-y-10" onSubmit={(e) => e.preventDefault()}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div className="space-y-3">
-                  <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-indigo-300">
-                    Legal Full Name
+                  <Label htmlFor="first_name" className="text-xs font-black uppercase tracking-widest text-indigo-300">
+                    First Name
                   </Label>
                   <Input
-                    id="name"
-                    name="name"
+                    id="first_name"
+                    name="first_name"
                     type="text"
-                    value={formData.name}
+                    value={formData.first_name}
                     onChange={handleInputChange}
                     className="bg-white/5 border-white/10 rounded-2xl h-14 px-6 focus:ring-indigo-500 text-white font-semibold"
                   />
                 </div>
 
                 <div className="space-y-3">
+                  <Label htmlFor="last_name" className="text-xs font-black uppercase tracking-widest text-indigo-300">
+                    Last Name
+                  </Label>
+                  <Input
+                    id="last_name"
+                    name="last_name"
+                    type="text"
+                    value={formData.last_name}
+                    onChange={handleInputChange}
+                    className="bg-white/5 border-white/10 rounded-2xl h-14 px-6 focus:ring-indigo-500 text-white font-semibold"
+                  />
+                </div>
+
+                <div className="space-y-3 md:col-span-2">
                   <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-indigo-300">
-                    Primary Email
+                    Email Address
                   </Label>
                   <Input
                     id="email"
@@ -123,66 +130,6 @@ export default function Profile() {
                     className="bg-white/5 border-white/10 rounded-2xl h-14 px-6 focus:ring-indigo-500 text-white font-semibold"
                   />
                 </div>
-
-                <div className="space-y-3">
-                  <Label htmlFor="phone" className="text-xs font-black uppercase tracking-widest text-indigo-300">
-                    Mobile Phone
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      className="bg-white/5 border-white/10 rounded-2xl h-14 pl-14 pr-6 focus:ring-indigo-500 text-white font-semibold"
-                    />
-                    <Smartphone className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400/50" />
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <Label htmlFor="currency" className="text-xs font-black uppercase tracking-widest text-indigo-300">
-                    Reporting Currency
-                  </Label>
-                  <div className="relative">
-                    <select
-                      id="currency"
-                      name="currency"
-                      value={formData.currency}
-                      onChange={handleInputChange}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl h-14 pl-14 pr-6 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white font-semibold appearance-none"
-                    >
-                      <option value="USD">United States Dollar ($)</option>
-                      <option value="EUR">Euro (€)</option>
-                      <option value="GBP">British Pound (£)</option>
-                      <option value="JPY">Japanese Yen (¥)</option>
-                    </select>
-                    <Globe className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400/50" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-6 border-t border-white/5">
-                <h3 className="text-sm font-black text-white mb-6 flex items-center gap-2">
-                   <Bell size={18} className="text-indigo-400" />
-                   Notification Settings
-                </h3>
-                <label className="flex items-center gap-4 cursor-pointer group">
-                  <div className="relative">
-                    <input
-                      type="checkbox"
-                      name="notifications"
-                      checked={formData.notifications}
-                      onChange={handleInputChange}
-                      className="sr-only peer"
-                    />
-                    <div className="w-14 h-8 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-indigo-600"></div>
-                  </div>
-                  <span className="text-sm font-bold text-indigo-200/60 group-hover:text-white transition-colors">
-                    Receive weekly intelligence & transaction reports via email
-                  </span>
-                </label>
               </div>
 
               <div className="flex gap-4 pt-6">
@@ -202,12 +149,11 @@ export default function Profile() {
               </div>
             </form>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
-                { label: 'Full Name', value: formData.name },
-                { label: 'Email Address', value: formData.email },
-                { label: 'Phone Number', value: formData.phone || 'Not provided' },
-                { label: 'Primary Currency', value: formData.currency }
+                { label: 'First Name', value: formData.first_name },
+                { label: 'Last Name', value: formData.last_name },
+                { label: 'Email Address', value: formData.email }
               ].map((item, idx) => (
                 <div key={idx} className="bg-white/2 border border-white/5 p-6 rounded-3xl group hover:bg-white/5 transition-colors">
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-2">{item.label}</p>

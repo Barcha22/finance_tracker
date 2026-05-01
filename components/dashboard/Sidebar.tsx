@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
-import { Wallet, Home, User, TrendingUp, LogOut, Menu, X } from 'lucide-react'
+import { Wallet, Home, User, TrendingUp, LogOut, Menu, X, CreditCard, Tag } from 'lucide-react'
 
 export default function Sidebar() {
   const pathname = usePathname()
@@ -21,6 +21,8 @@ export default function Sidebar() {
   const navigation = [
     { name: 'Home', href: '/dashboard', icon: Home },
     { name: 'Transactions', href: '/dashboard/transactions', icon: TrendingUp },
+    { name: 'Accounts', href: '/dashboard/accounts', icon: CreditCard },
+    { name: 'Categories', href: '/dashboard/categories', icon: Tag },
     { name: 'Profile', href: '/dashboard/profile', icon: User },
   ]
 
