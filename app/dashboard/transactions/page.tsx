@@ -2,9 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import { transactionsAPI, accountsAPI, categoriesAPI } from '@/lib/api'
@@ -53,7 +50,7 @@ export default function Transactions() {
   const [accounts, setAccounts] = useState<Account[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
-  const [showForm, setShowForm] = useState(false)
+  const [showModal, setShowModal] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all')
   const [formData, setFormData] = useState({
@@ -176,158 +173,111 @@ export default function Transactions() {
               Filter
             </button>
             <button 
-              onClick={() => setShowForm(!showForm)}
+              onClick={() => setShowModal(!showModal)}
               className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-sm font-black shadow-[0_10px_25px_-5px_rgba(79,70,229,0.4)] transition-all active:scale-95"
             >
-              {showForm ? <X size={20} /> : <Plus size={20} />}
-              {showForm ? 'Cancel' : 'Add Transaction'}
+              <Plus size={20} />
+              Add Transaction
             </button>
           </div>
 
-          {/* --- Add Transaction Form (Animated Reveal) --- */}
-          {showForm && (
-        <Card className="bg-[#1e1b4b] border-white/5 p-8 md:p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden border border-indigo-500/20">
-          <div className="absolute top-0 right-0 p-10 opacity-5 pointer-events-none">
-            <DollarSign size={120} />
-          </div>
-          
-          <div className="relative z-10">
-            <h2 className="text-2xl font-black text-white mb-8 flex items-center gap-3">
-               <div className="p-2 bg-indigo-500/20 rounded-xl">
-                  <Plus size={20} className="text-indigo-400" />
-               </div>
-               Record New Transaction
-            </h2>
-            
-            <form onSubmit={handleAddTransaction} className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-2">
-                  <Label htmlFor="description" className="text-xs font-black uppercase tracking-widest text-indigo-300">
-                    Description
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="description"
-                      name="description"
-                      type="text"
-                      placeholder="e.g., Apple Store Purchase"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      className="w-full bg-white/5 border-white/10 h-14 pl-12 rounded-2xl focus:ring-2 focus:ring-indigo-500 text-white placeholder:text-white/20 font-semibold"
-                    />
-                    <Tag className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400/50" />
+          {/* --- Transaction Modal (Overlay) --- */}
+          {showModal && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
+              {/* Backdrop (Solid Overlay, No Blur) */}
+              <div 
+                className="absolute inset-0 bg-[#051424]/90 transition-opacity"
+                onClick={() => setShowModal(false)}
+              />
+              
+              {/* Modal Container */}
+              <Card className="relative w-full max-w-2xl bg-[#1e1b4b] border border-white/10 rounded-[3rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] overflow-hidden animate-in zoom-in-95 duration-300">
+                <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
+                  <DollarSign size={160} />
+                </div>
+                
+                <div className="p-10 md:p-12 relative z-10">
+                  <div className="flex items-center justify-between mb-10">
+                    <h2 className="text-3xl font-black text-white flex items-center gap-4">
+                      <div className="p-3 bg-indigo-500/20 rounded-2xl border border-indigo-400/20">
+                        <Plus size={24} className="text-indigo-400" />
+                      </div>
+                      New Entry
+                    </h2>
+                    <button 
+                      onClick={() => setShowModal(false)}
+                      className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-white/50 hover:text-white transition-all"
+                    >
+                      <X size={20} />
+                    </button>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="amount" className="text-xs font-black uppercase tracking-widest text-indigo-300">
-                    Amount ($)
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="amount"
-                      name="amount"
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.amount}
-                      onChange={handleInputChange}
-                      step="0.01"
-                      className="w-full bg-white/5 border-white/10 h-14 pl-12 rounded-2xl focus:ring-2 focus:ring-indigo-500 text-white placeholder:text-white/20 font-semibold"
-                    />
-                    <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400/50" />
-                  </div>
-                </div>
-              </div>
+                  <form onSubmit={handleAddTransaction} className="space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-indigo-300 ml-1">Description</label>
+                        <div className="relative">
+                          <input name="description" type="text" placeholder="e.g., Grocery Shopping" value={formData.description} onChange={handleInputChange} className="w-full bg-white/5 border border-white/10 h-16 pl-14 rounded-2xl focus:ring-2 focus:ring-indigo-500 text-white placeholder:text-white/10 font-bold outline-none transition-all" />
+                          <Tag className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400/40" />
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-indigo-300 ml-1">Amount ($)</label>
+                        <div className="relative">
+                          <input name="amount" type="number" placeholder="0.00" value={formData.amount} onChange={handleInputChange} step="0.01" className="w-full bg-white/5 border border-white/10 h-16 pl-14 rounded-2xl focus:ring-2 focus:ring-indigo-500 text-white placeholder:text-white/10 font-bold outline-none transition-all" />
+                          <DollarSign className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400/40" />
+                        </div>
+                      </div>
+                    </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-2">
-                  <Label htmlFor="type" className="text-xs font-black uppercase tracking-widest text-indigo-300">
-                    Type
-                  </Label>
-                  <select
-                    id="type"
-                    name="type"
-                    value={formData.type}
-                    onChange={handleInputChange}
-                    className="w-full bg-[#1e1b4b] border border-white/10 h-14 px-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white font-semibold appearance-none"
-                  >
-                    <option value="expense">Expense</option>
-                    <option value="income">Income</option>
-                  </select>
-                </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-indigo-300 ml-1">Type</label>
+                        <select name="type" value={formData.type} onChange={handleInputChange} className="w-full bg-[#2c2a5e] border border-white/10 h-16 px-6 rounded-2xl focus:ring-2 focus:ring-indigo-500 text-white font-bold appearance-none cursor-pointer">
+                          <option value="expense">Expense</option>
+                          <option value="income">Income</option>
+                        </select>
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-indigo-300 ml-1">Account</label>
+                        <select name="account_id" value={formData.account_id} onChange={handleInputChange} className="w-full bg-[#2c2a5e] border border-white/10 h-16 px-6 rounded-2xl focus:ring-2 focus:ring-indigo-500 text-white font-bold appearance-none cursor-pointer">
+                          <option value="">Select Account</option>
+                          {accounts.map(acc => (
+                            <option key={acc.id} value={acc.id}>{acc.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="account_id" className="text-xs font-black uppercase tracking-widest text-indigo-300">
-                    Account
-                  </Label>
-                  <select
-                    id="account_id"
-                    name="account_id"
-                    value={formData.account_id}
-                    onChange={handleInputChange}
-                    className="w-full bg-[#1e1b4b] border border-white/10 h-14 px-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white font-semibold appearance-none"
-                  >
-                    <option value="">Select Account</option>
-                    {accounts.map((account) => (
-                      <option key={account.id} value={account.id}>
-                        {account.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-indigo-300 ml-1">Category</label>
+                        <select name="category_id" value={formData.category_id} onChange={handleInputChange} className="w-full bg-[#2c2a5e] border border-white/10 h-16 px-6 rounded-2xl focus:ring-2 focus:ring-indigo-500 text-white font-bold appearance-none cursor-pointer">
+                          <option value="">Select Category</option>
+                          {categories.map(cat => (
+                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-indigo-300 ml-1">Date</label>
+                        <input name="transaction_date" type="date" value={formData.transaction_date} onChange={handleInputChange} className="w-full bg-[#2c2a5e] border border-white/10 h-16 px-6 rounded-2xl focus:ring-2 focus:ring-indigo-500 text-white font-bold appearance-none cursor-pointer" />
+                      </div>
+                    </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-2">
-                  <Label htmlFor="category_id" className="text-xs font-black uppercase tracking-widest text-indigo-300">
-                    Category
-                  </Label>
-                  <select
-                    id="category_id"
-                    name="category_id"
-                    value={formData.category_id}
-                    onChange={handleInputChange}
-                    className="w-full bg-[#1e1b4b] border border-white/10 h-14 px-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white font-semibold appearance-none"
-                  >
-                    <option value="">Select Category</option>
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
+                    <div className="pt-4 flex gap-4">
+                      <button type="submit" className="flex-1 h-16 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-sm font-black shadow-[0_20px_40px_-10px_rgba(79,70,229,0.5)] transition-all active:scale-95">
+                        Add Transaction
+                      </button>
+                      <button type="button" onClick={() => setShowModal(false)} className="px-8 h-16 bg-white/5 hover:bg-white/10 text-white/40 hover:text-white rounded-2xl text-sm font-bold transition-all">
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="transaction_date" className="text-xs font-black uppercase tracking-widest text-indigo-300">
-                    Date
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="transaction_date"
-                      name="transaction_date"
-                      type="date"
-                      value={formData.transaction_date}
-                      onChange={handleInputChange}
-                      className="w-full bg-white/5 border-white/10 h-14 px-4 rounded-2xl focus:ring-2 focus:ring-indigo-500 text-white placeholder:text-white/20 font-semibold"
-                    />
-                    <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400/50 pointer-events-none" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex pt-4">
-                <Button
-                  type="submit"
-                  className="h-14 px-10 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-sm font-black shadow-xl transition-all active:scale-95"
-                >
-                  Add Transaction
-                </Button>
-              </div>
-            </form>
-          </div>
-        </Card>
-      )}
+              </Card>
+            </div>
+          )}
 
       {/* --- Transactions Ledger --- */}
       <Card className="bg-[#1e1b4b] border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col group">
