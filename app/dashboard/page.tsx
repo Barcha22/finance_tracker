@@ -159,8 +159,8 @@ export default function DashboardHome() {
             <h1 className="text-4xl font-black tracking-tight text-white mb-2">Dashboard</h1>
             <div className="flex items-center gap-4 text-indigo-200/60 font-semibold text-sm">
               <div className="flex items-center gap-2">
-                <Calendar size={16} className="text-indigo-400" />
-                <span>Oct 1 - Oct 31, 2023</span>
+                {/* <Calendar size={16} className="text-indigo-400" /> */}
+                {/* <span>Oct 1 - Oct 31, 2023</span> */}
               </div>
               <span className="w-1 h-1 rounded-full bg-white/20" />
               <div className="flex items-center gap-2">

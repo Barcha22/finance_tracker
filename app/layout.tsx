@@ -14,7 +14,7 @@ export default function RootLayout({
           {children}
         </AuthProvider>
         <Toaster
-          position="top-right"
+          position="top-center"
           reverseOrder={false}
           gutter={8}
           toastOptions={{
@@ -22,7 +22,7 @@ export default function RootLayout({
             style: {
               background: '#1e1b4b',
               color: '#fff',
-              borderRadius: '0.5rem',
+              borderRadius: '1rem',
               border: '1px solid rgba(129, 140, 248, 0.2)',
             },
           }}
