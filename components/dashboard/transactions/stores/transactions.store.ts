@@ -2,8 +2,8 @@ import {create} from 'zustand'
 import { Category, Transaction,Account,FormData} from '../types/transactions.types';
 
 interface TransactionsState{
-    searchTerm:string|null;
-    setSearchTerm:(searchTerm:string|null)=>void;
+    searchTerm:string;
+    setSearchTerm:(searchTerm:string)=>void;
 
     showFilterPanel:boolean;
     setShowFilterPanel:(showFilterPanel:boolean)=>void;
@@ -35,8 +35,8 @@ interface TransactionsState{
 }
 
 export const useTransactionsStore=create<TransactionsState>((set)=>({
-    searchTerm:null,
-    setSearchTerm:(searchTerm:string|null)=>
+    searchTerm:'',
+    setSearchTerm:(searchTerm:string)=>
         set({searchTerm}),
 
     showFilterPanel:false,

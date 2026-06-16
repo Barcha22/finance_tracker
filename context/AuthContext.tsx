@@ -50,6 +50,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Store token and user in localStorage
         localStorage.setItem('token', userData.token)
         localStorage.setItem('user', JSON.stringify(userData))
+        
+        // Store token in cookie for middleware
+        document.cookie = `token=${userData.token}; path=/; max-age=604800; samesite=strict`
       } else {
         throw new Error(response.message || 'Login failed')
       }
@@ -105,6 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // If token was updated, update it too
     if (updatedUser.token) {
       localStorage.setItem('token', updatedUser.token)
+      document.cookie = `token=${updatedUser.token}; path=/; max-age=604800; samesite=strict`
     }
   }
 
@@ -132,6 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAuthenticated(false)
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
   }
 
   return (

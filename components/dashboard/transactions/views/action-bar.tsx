@@ -3,7 +3,9 @@ import { useTransactionsStore } from "../stores/transactions.store"
 
 export default function ActionBar(){
     const {searchTerm,setSearchTerm,showFilterPanel,setShowFilterPanel,filterType,activeCategoryId,setFilterType,setActiveCategoryId,showModal,setShowModal}=useTransactionsStore();
+
     const hasActiveFilters = searchTerm?.trim() !== '' || filterType !== 'all' || activeCategoryId !== null
+    
     const clearAllFilters = () => {
         setSearchTerm('')
         setFilterType('all')

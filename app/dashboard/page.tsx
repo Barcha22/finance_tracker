@@ -12,17 +12,11 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer, 
-  PieChart, 
-  Pie, 
-  Cell
 } from 'recharts'
 import { 
   TrendingUp, 
   TrendingDown, 
-  Wallet, 
   ArrowUpRight, 
-  ArrowDownRight,
-  Calendar,
   Trash2
 } from 'lucide-react'
 import toast from 'react-hot-toast'
