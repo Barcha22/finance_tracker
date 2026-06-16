@@ -1,15 +1,16 @@
+import { useAuth } from "@/context/AuthContext";
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { DollarSign } from "lucide-react"
 import {toast} from 'react-hot-toast'
-import { AccountsStore } from "../stores/accounts.store"
+import { useAccountsStore } from "../stores/accounts.store"
 import { accountsAPI } from "@/lib/api"
-import { fetchAccounts } from "../lib/fetch-accounts"
 
 
 export default function AddForm(){
-    const {formData,setFormData,editingId,setEditingId,setShowForm}=AccountsStore();
+    const { user } = useAuth();
+    const {formData,setFormData,editingId,setEditingId,setShowForm}=useAccountsStore();
 
     const handleAddOrUpdate = async (e: React.FormEvent) => {
         e.preventDefault()   
@@ -36,7 +37,7 @@ export default function AddForm(){
           setFormData({ name: '', balance: '', account_type: 'Checking' })
           setEditingId(null)
           setShowForm(false)
-          await fetchAccounts()
+          await useAccountsStore.getState().fetchAccounts(user?.id)
         } catch (error) {
           toast.error(error instanceof Error ? error.message : 'Operation failed')
         }

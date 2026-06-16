@@ -1,13 +1,14 @@
+import { useAuth } from "@/context/AuthContext";
 import { Card } from "@/components/ui/card"
 import { Wallet,Edit2,Trash2 } from "lucide-react"
-import { AccountsStore } from "../stores/accounts.store"
+import { useAccountsStore } from "../stores/accounts.store"
 import { Account } from "../types/accounts.types";
 import toast from "react-hot-toast";
 import { accountsAPI } from "@/lib/api";
-import { fetchAccounts } from "../lib/fetch-accounts";
 
 export function AccountsGrid(){
-    const {accounts,setFormData,setEditingId,setShowForm}=AccountsStore();
+    const { user } = useAuth();
+    const {accounts,setFormData,setEditingId,setShowForm}=useAccountsStore();
 
     const handleEdit = (account: Account) => {
         setFormData({
@@ -23,7 +24,7 @@ export function AccountsGrid(){
           try {
             await accountsAPI.delete(id)
             toast.success('Account deleted!')
-            await fetchAccounts()
+            await useAccountsStore.getState().fetchAccounts(user?.id)
           } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to delete')
           }

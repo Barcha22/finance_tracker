@@ -1,6 +1,5 @@
 import {create} from 'zustand'
 import { Account, FormData } from '../types/accounts.types'
-import { useAuth } from '@/context/AuthContext'
 
 
 interface AccountsState{
@@ -19,12 +18,11 @@ interface AccountsState{
     accounts:Account[]|null;
     setAccounts:(accounts:Account[]|null)=>void;
 
-    user:typeof useAuth|null;
-    isAuthenticated:(user:typeof useAuth|null)=>void;
+    fetchAccounts: (userId: any) => Promise<void>;
 
 }
 
-export const AccountsStore=create<AccountsState>((set)=>({
+export const useAccountsStore=create<AccountsState>((set)=>({
     formData:null,
     setFormData:(formData:FormData|null)=>
         set({formData}),
@@ -45,7 +43,5 @@ export const AccountsStore=create<AccountsState>((set)=>({
     setAccounts:(accounts:Account[]|null)=>
         set({accounts}),
 
-    user:null,
-    isAuthenticated:(user:typeof useAuth|null)=>
-        set({user})
+    fetchAccounts: async (userId: any) => { set({ loading: true }); try { const { accountsAPI } = await import('@/lib/api'); const res = await accountsAPI.getByUser(userId); set({ accounts: res?.result || [] }); } catch (error: any) { const { toast } = await import('react-hot-toast'); toast.error('Failed to load accounts'); } finally { set({ loading: false }); } }
 }))
