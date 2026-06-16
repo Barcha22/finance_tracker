@@ -5,7 +5,7 @@ export default function ActionBar(){
     const {searchTerm,setSearchTerm,showFilterPanel,setShowFilterPanel,filterType,activeCategoryId,setFilterType,setActiveCategoryId,showModal,setShowModal}=useTransactionsStore();
 
     const hasActiveFilters = searchTerm?.trim() !== '' || filterType !== 'all' || activeCategoryId !== null
-    
+
     const clearAllFilters = () => {
         setSearchTerm('')
         setFilterType('all')
@@ -15,7 +15,7 @@ export default function ActionBar(){
     return (
         <div className="flex flex-wrap items-center gap-3">
             {/* Search Input */}
-            <div className="relative flex-1 min-w-[220px] max-w-sm">
+            <div className="relative flex-1 min-w-55 max-w-sm">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-300/40" />
               <input
                 type="text"

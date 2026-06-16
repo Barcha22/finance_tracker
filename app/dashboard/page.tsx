@@ -143,7 +143,7 @@ export default function DashboardHome() {
     <div className="min-h-screen w-full bg-[#051424] font-['Manrope'] text-white overflow-x-hidden relative">
       
       {/* --- Main Dashboard Content --- */}
-      <div className="p-8 space-y-10 max-w-[1600px] mx-auto">
+      <div className="p-8 space-y-10 max-w-400 mx-auto">
         
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -224,11 +224,11 @@ export default function DashboardHome() {
               <h3 className="text-2xl font-black text-white">Recent Activity</h3>
               <p className="text-indigo-300 font-semibold text-sm mt-1">Live ledger from integrated sources</p>
             </div>
-            <div className="overflow-y-auto max-h-[400px]">
+            <div className="overflow-y-auto max-h-100">
               <table className="w-full text-left">
                 <tbody className="divide-y divide-white/5">
                   {transactions.slice(0, 10).map((transaction) => (
-                    <tr key={transaction.id} className="group/row hover:bg-white/[0.02] transition-colors">
+                    <tr key={transaction.id} className="group/row hover:bg-white/2 transition-colors">
                       <td className="px-10 py-6">
                         <div className="flex items-center gap-4">
                           <div className={`p-2.5 rounded-xl border ${transaction.type === 'income' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-rose-500/10 border-rose-500/20 text-rose-400'}`}>

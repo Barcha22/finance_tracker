@@ -78,7 +78,7 @@ export function ProfileAvatar() {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center">
+              <div className="w-full h-full bg-linear-to-tr from-indigo-600 to-violet-500 flex items-center justify-center">
                 {isDragging ? (
                   <Upload size={32} className="text-white animate-bounce" />
                 ) : (
