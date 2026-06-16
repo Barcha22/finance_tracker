@@ -1,7 +1,6 @@
 'use client'
-
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
-import { authAPI } from '@/lib/api'
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react'
+import { authAPI, profileApi } from '@/lib/api'
 
 interface User {
   id: number
@@ -9,6 +8,7 @@ interface User {
   first_name: string
   last_name: string
   username: string
+  token?: string
 }
 
 interface AuthContextType {
@@ -17,6 +17,8 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<void>
   logout: () => void
   register: (first_name: string, last_name: string, username: string, email: string, password: string) => Promise<void>
+  updateUser: (updatedUser: Partial<User> | User) => void
+  refreshProfile: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -30,7 +32,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storedUser = localStorage.getItem('user')
     const storedToken = localStorage.getItem('token')
     if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser))
+      const parsedUser = JSON.parse(storedUser)
+      setUser({ ...parsedUser, token: storedToken })
       setIsAuthenticated(true)
     }
   }, [])
@@ -51,7 +54,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(response.message || 'Login failed')
       }
     } catch (error: any) {
-      // Extract meaningful error message
       let errorMessage = 'Login failed'
       
       if (error?.message) {
@@ -77,7 +79,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(response.message || 'Registration failed')
       }
     } catch (error: any) {
-      // Extract meaningful error message
       let errorMessage = 'Registration failed'
       
       if (error?.message) {
@@ -90,6 +91,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // Update user in state and localStorage
+  const updateUser = (updatedUser: Partial<User> | User) => {
+    if (!user) return
+    
+    const newUser = { ...user, ...updatedUser }
+    setUser(newUser)
+    
+    // Update localStorage
+    const { token, ...userWithoutToken } = newUser
+    localStorage.setItem('user', JSON.stringify(userWithoutToken))
+    
+    // If token was updated, update it too
+    if (updatedUser.token) {
+      localStorage.setItem('token', updatedUser.token)
+    }
+  }
+
+  // Refresh profile from API
+  const refreshProfile = async () => {
+    try {
+      const response = await profileApi.getProfile()
+      if (response.responseCode === 200 && response.result) {
+        const userData = response.result
+        // Preserve the token
+        const currentToken = user?.token || localStorage.getItem('token')
+        const userWithToken = { ...userData, token: currentToken }
+        setUser(userWithToken)
+        localStorage.setItem('user', JSON.stringify(userData))
+      } else {
+        console.error('Failed to refresh profile:', response.message)
+      }
+    } catch (error) {
+      console.error('Failed to refresh profile:', error)
+    }
+  }
+
   const logout = () => {
     setUser(null)
     setIsAuthenticated(false)
@@ -98,7 +135,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, register }}>
+    <AuthContext.Provider 
+      value={{ 
+        user, 
+        isAuthenticated, 
+        login, 
+        logout, 
+        register,
+        updateUser,
+        refreshProfile
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )

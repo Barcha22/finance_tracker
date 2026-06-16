@@ -91,8 +91,6 @@ export default function DashboardHome() {
     }
   }
 
-  // Calculate totals
-  // Build per-account expense totals to infer total received (initial deposits + income transactions)
   const expenseByAccount: Record<number, number> = transactions
     .filter(t => t.type === 'expense')
     .reduce((map: Record<number, number>, t) => {
@@ -133,7 +131,7 @@ export default function DashboardHome() {
     try {
       await transactionsAPI.delete(id)
       toast.success('Transaction deleted!')
-      fetchData() // Refresh datas
+      fetchData() 
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to delete transaction')
     }

@@ -94,3 +94,22 @@ export const categoriesAPI = {
   delete: (id: number) =>
     apiCall(`/categories/${id}`, 'DELETE'),
 };
+
+// PROFILE endpoints
+export const profileApi = {
+  // Get current user's profile
+  getProfile: () =>
+    apiCall('/profile', 'GET'),
+  
+  // Update first name
+  updateFirstName: (newName: string) =>
+    apiCall('/profile/first-name', 'POST', { newName }),
+  
+  // Update last name
+  updateLastName: (newName: string) =>
+    apiCall('/profile/last-name', 'POST', { newName }),
+  
+  // Update both first and last name
+  updateProfile: (data: { first_name?: string; last_name?: string }) =>
+    apiCall('/profile', 'PATCH', data),
+};
